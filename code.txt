@@ -1,0 +1,6 @@
+abc = 1;
+q = 3;
+tatat = 2;
+aa = -3.2;
+f = 10;
+(2+abc)*q+(tatat-f)/aa;
