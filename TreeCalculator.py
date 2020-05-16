@@ -58,4 +58,28 @@ class Parser:
             while var in expression:
                 expression = expression.replace(var, variables[var])
         return shunting_yard(expression.split(" "))
+        
+class Node:
+    def init(self,value,right=None, left=None):
+        self.right = right
+        self.left = left
+        self.value = value
+
+class AST:
+    root = None
+    def create_tree(self, sentence):
+        stack = []
+        for char in sentence:
+            if not is_operator(char):
+                node = Node(char)
+                stack.append(node)
+            else:
+                node = Node(char)
+                child1 = stack.pop()
+                child2= stack.pop()
+                node.right = child1
+                node.left = child2
+                stack.append(node)
+        node = stack.pop()
+        self.root = node       
 filename = "code.txt"       
