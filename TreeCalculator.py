@@ -4,7 +4,11 @@ def is_operator(c):
         return True
     else: 
         return False
-
+def evaluate_condition(condition, variables):
+    for v in variables:
+        if v in condition:
+            condition = condition.replace(v, str(variables[v]))
+    return eval(condition)
 def parse_equation(equation):
     OPERATORS = ['+', '-', '/', '*', '(', ')']
     result = ''
@@ -44,19 +48,49 @@ class Parser:
         self.filename = filename
     def parse_expression(self):
         variables = dict()
-        expression = ""
+        expressions = []
+        conditions = []
         with open(self.filename, "r") as file:
             data = file.read().splitlines()
-        expression = data[-1].replace(";", "")
-        for x in range(len(data)-1):
-            row = data[x].replace(";", "").split(" ")
-            variables[row[0]] = row[2]
-        expression = parse_equation(expression)
-        return (expression, variables)
+        global isif
+        isif = False
+        for x in data:
+            if "if" in x:
+                isif = True
+        if isif:
+            for x in range(len(data)):
+                if "if" in data[x]:
+                    c = data[x].replace("if","")[:-1].strip()
+                    expressions.append(data[x+1].strip()[:-1])
+                    conditions.append(c)
+                if "else if" in data[x]:
+                    c = data[x].replace("else if","")[:-1].strip()
+                    expressions.append(data[x+1][:-1].strip())
+                    conditions.append(c)
+                if "else" in data[x]:
+                    expressions.append(data[x+1].strip()[:-1])
+                if "=" in data[x]:
+                    d = data[x].split(" ")
+                    variables[d[0].strip()] = float(d[2].replace(";", ""))
+            for x in range(len(conditions)):
+                conditions[x] = evaluate_condition(conditions[x], variables)
+            try:
+                expression = expressions[conditions.index(True)]
+            except ValueError:
+                expression = expressions[-1]
+            expression = parse_equation(expression)
+            return (expression, variables)
+        else:
+            expression = data[-1].replace(";", "")
+            for x in range(len(data)-1):
+                row = data[x].replace(";", "").split(" ")
+                variables[row[0]] = row[2]
+            expression = parse_equation(expression)
+            return (expression, variables)
     def tranform_expression(self, expression, variables):
         for var in variables:
             while var in expression:
-                expression = expression.replace(var, variables[var])
+                expression = expression.replace(var, str(variables[var]))
         return shunting_yard(expression.split(" "))
     
 class Node:
